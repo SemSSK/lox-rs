@@ -1,14 +1,39 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+#[derive(Debug)]
+pub enum Token {
+    LeftParen { line: u32 },
+    RightParen { line: u32 },
+    LeftBrace { line: u32 },
+    RightBrace { line: u32 },
+    Comma { line: u32 },
+    Dot { line: u32 },
+    Minus { line: u32 },
+    Plus { line: u32 },
+    Semicolon { line: u32 },
+    Slash { line: u32 },
+    Star { line: u32 },
+    Bang { line: u32 },
+    BangEqual { line: u32 },
+    Greater { line: u32 },
+    GreaterEqual { line: u32 },
+    Lesser { line: u32 },
+    LesserEqual { line: u32 },
+    Identifier { line: u32, literal: String },
+    LoxString { line: u32, literal: String },
+    Number { line: u32, literal: f64 },
+    And { line: u32 },
+    Class { line: u32 },
+    If { line: u32 },
+    Else { line: u32 },
+    False { line: u32 },
+    True { line: u32 },
+    Nil { line: u32 },
+    Or { line: u32 },
+    Print { line: u32 },
+    Return { line: u32 },
+    Super { line: u32 },
+    This { line: u32 },
+    Var { line: u32 },
+    While { line: u32 },
+    Fun { line: u32 },
+    Eof { line: u32 },
 }
