@@ -89,6 +89,9 @@ impl Token {
             },
         }
     }
+    pub fn eof(line: u32) -> Token {
+        Self::Eof { line }
+    }
 }
 
 fn is_numeric(s: &str) -> bool {
