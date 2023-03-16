@@ -37,3 +37,66 @@ pub enum Token {
     Fun { line: u32 },
     Eof { line: u32 },
 }
+
+impl Token {
+    pub fn from_str(lexem: &str, line: u32) -> Self {
+        use Token::*;
+
+        match lexem {
+            "(" => LeftParen { line },
+            ")" => RightParen { line },
+            "{" => LeftBrace { line },
+            "}" => RightBrace { line },
+            "," => Comma { line },
+            "." => Dot { line },
+            "-" => Minus { line },
+            "+" => Plus { line },
+            ";" => Semicolon { line },
+            "/" => Slash { line },
+            "*" => Star { line },
+            "!" => Bang { line },
+            "!=" => BangEqual { line },
+            ">" => GreaterEqual { line },
+            ">=" => GreaterEqual { line },
+            "<" => Lesser { line },
+            "<=" => LesserEqual { line },
+            "and" => And { line },
+            "class" => Class { line },
+            "if" => If { line },
+            "else" => Else { line },
+            "false" => False { line },
+            "true" => True { line },
+            "nil" => Nil { line },
+            "or" => Or { line },
+            "print" => Print { line },
+            "return" => Return { line },
+            "super" => Super { line },
+            "var" => Var { line },
+            "this" => This { line },
+            "while" => While { line },
+            "fun" => Fun { line },
+            s if is_numeric(s) => Number {
+                line,
+                literal: s.parse().unwrap(),
+            },
+            s if is_string(s) => LoxString {
+                line,
+                literal: s[1..(s.len() - 1)].to_string(),
+            },
+            s => Identifier {
+                line,
+                literal: s.to_string(),
+            },
+        }
+    }
+}
+
+fn is_numeric(s: &str) -> bool {
+    s.chars()
+        .map(|c| ('0'..='9').contains(&c) || c == '.')
+        .fold(true, |acc, c| acc && c)
+}
+
+fn is_string(s: &str) -> bool {
+    s.starts_with('"') && s.ends_with('"')
+}
