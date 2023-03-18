@@ -71,7 +71,6 @@ PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 | Fun | fun      |
 | Eof | special token represents end of file |
 
-the tokens will be represented as an rust enum data type 
+the tokens will be represented as an rust enum data type the lexer's return type will be (`Vec<Result<Token,String>>`) in case of syntax errors
 
-
-     
+the algorithm for parsing is similar to the one showcased in the book althought it was easier to parse through special symbols such as : if, else, while...etc using pattern matching on the strings to construct the token instead of explicitly creating them.
