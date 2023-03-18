@@ -1,105 +1,246 @@
-#[derive(Debug)]
-pub enum Token {
-    LeftParen { line: u32 },
-    RightParen { line: u32 },
-    LeftBrace { line: u32 },
-    RightBrace { line: u32 },
-    Comma { line: u32 },
-    Dot { line: u32 },
-    Minus { line: u32 },
-    Plus { line: u32 },
-    Semicolon { line: u32 },
-    Slash { line: u32 },
-    Star { line: u32 },
-    Bang { line: u32 },
-    BangEqual { line: u32 },
-    Greater { line: u32 },
-    GreaterEqual { line: u32 },
-    Lesser { line: u32 },
-    LesserEqual { line: u32 },
-    Identifier { line: u32, literal: String },
-    LoxString { line: u32, literal: String },
-    Number { line: u32, literal: f64 },
-    And { line: u32 },
-    Class { line: u32 },
-    If { line: u32 },
-    Else { line: u32 },
-    False { line: u32 },
-    True { line: u32 },
-    Nil { line: u32 },
-    Or { line: u32 },
-    Print { line: u32 },
-    Return { line: u32 },
-    Super { line: u32 },
-    This { line: u32 },
-    Var { line: u32 },
-    While { line: u32 },
-    Fun { line: u32 },
-    Eof { line: u32 },
+mod token;
+use common::is_alphanumeric;
+use token::*;
+
+const UNIQUE_CHARACTER_SYMBOLE: [&str; 10] = ["(", ")", "{", "}", ",", ".", "-", "+", ";", "*"];
+const EQUAL_ADJACENT_SYMBOLE: [&str; 4] = ["=", "!", ">", "<"];
+
+/// Used for generating a vector of tokens with type
+/// ```
+///     Result<Token,String>
+/// ```
+/// As there might be syntax errors that need to be addressed
+/// # Example:
+///
+/// ```
+/// fn main(){
+///     let code = <LOX CODE GOES HERE>;
+///     let tokens = Lexer::new(&code)
+///                         .process();
+/// }
+/// ```
+pub struct Lexer {
+    input: String,
+    position: usize,
+    read_position: usize,
+    line: u32,
 }
 
-impl Token {
-    pub fn from_str(lexem: &str, line: u32) -> Self {
-        use Token::*;
+impl Lexer {
+    fn new(input: &str) -> Self {
+        let input = input.to_string();
+        Self {
+            input,
+            position: 0,
+            read_position: 0,
+            line: 0,
+        }
+    }
 
-        match lexem {
-            "(" => LeftParen { line },
-            ")" => RightParen { line },
-            "{" => LeftBrace { line },
-            "}" => RightBrace { line },
-            "," => Comma { line },
-            "." => Dot { line },
-            "-" => Minus { line },
-            "+" => Plus { line },
-            ";" => Semicolon { line },
-            "/" => Slash { line },
-            "*" => Star { line },
-            "!" => Bang { line },
-            "!=" => BangEqual { line },
-            ">" => GreaterEqual { line },
-            ">=" => GreaterEqual { line },
-            "<" => Lesser { line },
-            "<=" => LesserEqual { line },
-            "and" => And { line },
-            "class" => Class { line },
-            "if" => If { line },
-            "else" => Else { line },
-            "false" => False { line },
-            "true" => True { line },
-            "nil" => Nil { line },
-            "or" => Or { line },
-            "print" => Print { line },
-            "return" => Return { line },
-            "super" => Super { line },
-            "var" => Var { line },
-            "this" => This { line },
-            "while" => While { line },
-            "fun" => Fun { line },
-            s if is_numeric(s) => Number {
-                line,
-                literal: s.parse().unwrap(),
-            },
-            s if is_string(s) => LoxString {
-                line,
-                literal: s[1..(s.len() - 1)].to_string(),
-            },
-            s => Identifier {
-                line,
-                literal: s.to_string(),
+    fn process(&mut self) -> Vec<Result<Token, String>> {
+        let mut tokens = vec![];
+
+        loop {
+            self.position = self.read_position;
+            self.read_position += 1;
+            if self.read_position > self.input.len() {
+                break;
+            }
+            let s = &self.input[self.position..self.read_position];
+            match s {
+                "\n" => self.line += 1,
+                " " | "\t" | "\r" => {
+                    continue;
+                }
+                s if UNIQUE_CHARACTER_SYMBOLE.contains(&s) => {}
+                s if EQUAL_ADJACENT_SYMBOLE.contains(&s) => {
+                    if let Some(c) = self.input.get(self.read_position..(self.read_position + 1)) {
+                        match c {
+                            "=" => {
+                                self.read_position += 1;
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                "\"" => {
+                    if let Err(s) = self.process_string() {
+                        tokens.push(Err(s))
+                    }
+                }
+                "/" => {
+                    if let Err(s) = self.process_slash() {
+                        tokens.push(Err(s))
+                    }
+                    if self.read_position - self.position > 1 {
+                        continue;
+                    }
+                }
+                _ => {
+                    if let Err(s) = self.process_other() {
+                        tokens.push(Err(s))
+                    }
+                }
+            }
+            tokens.push(Ok(Token::from_str(
+                &self.input[self.position..self.read_position],
+                self.line,
+            )));
+        }
+
+        tokens.push(Ok(Token::eof(self.line)));
+        tokens
+    }
+
+    fn process_string(&mut self) -> Result<(), String> {
+        let s = self.input.get(self.read_position..(self.read_position + 1));
+        match s {
+            None => Err("Unclosed string error".to_string()),
+            Some(s) => match s {
+                "\"" => {
+                    self.read_position += 1;
+                    Ok(())
+                }
+                _ => {
+                    self.read_position += 1;
+                    self.process_string()
+                }
             },
         }
     }
-    pub fn eof(line: u32) -> Token {
-        Self::Eof { line }
+
+    fn process_other(&mut self) -> Result<(), String> {
+        let s = self.input.get(self.read_position..(self.read_position + 1));
+        match s {
+            None => Ok(()),
+            Some(s) => match s {
+                s if UNIQUE_CHARACTER_SYMBOLE.contains(&s)
+                    || EQUAL_ADJACENT_SYMBOLE.contains(&s)
+                    || [" ", "\r", "\t", "\n"].contains(&s) =>
+                {
+                    Ok(())
+                }
+                _ => {
+                    self.read_position += 1;
+                    self.process_other()
+                }
+            },
+        }
+    }
+
+    fn process_slash(&mut self) -> Result<(), String> {
+        let s = self.input.get(self.read_position..(self.read_position + 1));
+        match s {
+            None => Ok(()),
+            Some(s) => match s {
+                "/" => {
+                    self.read_position += 1;
+                    self.process_comment()
+                }
+                _ => Ok(()),
+            },
+        }
+    }
+
+    fn process_comment(&mut self) -> Result<(), String> {
+        let s = self.input.get(self.read_position..(self.read_position + 1));
+        match s {
+            None => Ok(()),
+            Some(s) => match s {
+                "\n" => {
+                    self.read_position += 1;
+                    self.line += 1;
+                    Ok(())
+                }
+                _ => {
+                    self.read_position += 1;
+                    self.process_comment()
+                }
+            },
+        }
     }
 }
 
-fn is_numeric(s: &str) -> bool {
-    s.chars()
-        .map(|c| ('0'..='9').contains(&c) || c == '.')
-        .fold(true, |acc, c| acc && c)
-}
+#[cfg(test)]
+mod test {
+    use std::fs;
 
-fn is_string(s: &str) -> bool {
-    s.starts_with('"') && s.ends_with('"')
+    use crate::{token::Token, Lexer};
+
+    #[test]
+    fn tst_1() {
+        let input = "var lexem == 1 + 2;";
+        let tokens = Lexer::new(input)
+            .process()
+            .into_iter()
+            .filter(|t| t.is_ok())
+            .map(|t| t.unwrap())
+            .collect::<Vec<_>>();
+        let actual = vec![
+            Token::from_str("var", 0),
+            Token::from_str("lexem", 0),
+            Token::from_str("==", 0),
+            Token::from_str("1", 0),
+            Token::from_str("+", 0),
+            Token::from_str("2", 0),
+            Token::from_str(";", 0),
+            Token::eof(0),
+        ];
+        assert_eq!(actual, tokens);
+    }
+
+    #[test]
+    fn tst_2() {
+        let input = "// Your first Lox program!\nprint \"Hello, world!\";";
+        let tokens = Lexer::new(input)
+            .process()
+            .into_iter()
+            .filter(|t| t.is_ok())
+            .map(|t| t.unwrap())
+            .collect::<Vec<_>>();
+        let actual = vec![
+            Token::from_str("print", 1),
+            Token::from_str("\"Hello, world!\"", 1),
+            Token::from_str(";", 1),
+            Token::eof(1),
+        ];
+        assert_eq!(actual, tokens);
+    }
+
+    #[test]
+    fn tst_3() {
+        let input = fs::read_to_string("test_samples/main.lox").unwrap();
+
+        let tokens = Lexer::new(&input)
+            .process()
+            .into_iter()
+            .filter(|t| t.is_ok())
+            .map(|t| t.unwrap())
+            .collect::<Vec<_>>();
+        let actual = vec![
+            Token::from_str("var", 0),
+            Token::from_str("a", 0),
+            Token::from_str("=", 0),
+            Token::from_str("1", 0),
+            Token::from_str(";", 0),
+            Token::from_str("while", 1),
+            Token::from_str("(", 1),
+            Token::from_str("a", 1),
+            Token::from_str("<", 1),
+            Token::from_str("10", 1),
+            Token::from_str(")", 1),
+            Token::from_str("{", 1),
+            Token::from_str("print", 2),
+            Token::from_str("a", 2),
+            Token::from_str(";", 2),
+            Token::from_str("a", 3),
+            Token::from_str("=", 3),
+            Token::from_str("a", 3),
+            Token::from_str("+", 3),
+            Token::from_str("1", 3),
+            Token::from_str(";", 3),
+            Token::from_str("}", 4),
+        ];
+        assert!(true);
+    }
 }

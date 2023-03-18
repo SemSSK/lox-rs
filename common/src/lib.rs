@@ -1,14 +1,13 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+pub fn is_numeric(s: &str) -> bool {
+    s.chars()
+        .map(|c| ('0'..='9').contains(&c) || c == '.')
+        .fold(true, |acc, c| acc && c)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub fn is_string(s: &str) -> bool {
+    s.starts_with('"') && s.ends_with('"')
+}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub fn is_alphanumeric(c: &char) -> bool {
+    ('a'..'z').contains(c) || ('A'..'Z').contains(c) || ('0'..'9').contains(&c)
 }
