@@ -1,13 +1,13 @@
 mod token;
 use common::is_alphanumeric;
-use token::*;
+pub use token::*;
 
 const UNIQUE_CHARACTER_SYMBOLE: [&str; 10] = ["(", ")", "{", "}", ",", ".", "-", "+", ";", "*"];
 const EQUAL_ADJACENT_SYMBOLE: [&str; 4] = ["=", "!", ">", "<"];
 
 /// Used for generating a vector of tokens with type
 /// ```
-///     Result<Token,String>
+///     Result::<Token,String>
 /// ```
 /// As there might be syntax errors that need to be addressed
 /// # Example:

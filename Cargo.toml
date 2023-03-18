@@ -1,2 +1,2 @@
 [workspace]
-members = ["lox-repl", "lexer", "common"]
+members = ["lox-repl", "lexer", "common", "parser"]
