@@ -16,21 +16,6 @@ First we must determine the tokens which will be seen by our interpreter as writ
 
 We must the determine all the possible tokens in the lox language so we have:
 
-LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
-
-// One or two character tokens.
-BANG, BANG_EQUAL,
-EQUAL, EQUAL_EQUAL,
-GREATER, GREATER_EQUAL,
-LESS, LESS_EQUAL,
-
-// Literals.
-IDENTIFIER, STRING, NUMBER,
-
-// Keywords.
-AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 
 | Token         | Code representation           |
 | ------------- |:-------------:|
@@ -242,4 +227,6 @@ impl Interpretable for Expr {
     }
 }
 ```
-
+<div align="center">
+🚧 WORK IN PROGRESS 🚧
+</div>
