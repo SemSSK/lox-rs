@@ -4,7 +4,11 @@ made by following the book [Crafting Interpreters by Robert Nystrom](https://cra
 ## What you will find this repo
 this repo will contain the implementation of the interpreter, following each chapter of the book summerizing the algorithms described in the book a programming language agnostic way and how it translates to rust.
 
-## Chapter 1 : Scanning
+### [1 - Scanning](#scanning)
+### [2 - Context Free Grammar (CFG)](#context-free-grammar-cfg)
+
+
+# Scanning
 I will deviate a little from the book in this part as i prefer to test the code in a sandbox using unit tests rather than write a repl for now but we will get back to it when necessary.
 
 First we must determine the tokens which will be seen by our interpreter as written source code is juste a string of characters we must restructure it in such a way that a machine can understand it.
@@ -60,7 +64,7 @@ the tokens will be represented as an rust enum data type the lexer's return type
 
 the algorithm for parsing is similar to the one showcased in the book althought it was easier to parse through special symbols such as : if, else, while...etc using pattern matching on the strings to construct the token instead of explicitly creating them.
 
-## Chapter 2: context free grammar (CFG)
+# Context Free Grammar (CFG)
 
 Before we get to the parser we need to a representation of an abstract syntax tree that satisfies the following CFG:
 
